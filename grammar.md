@@ -1,306 +1,290 @@
-# Powwow Grammar
+# Powwow Lang Grammar
 
-Powwow is a templating language that mixes plain text with directives enclosed in double curly braces.
-
-## 1. Basic Structure
+## Template
 
 ```
-Template ::= (Text | Directive | Comment | Whitespace | Newline)*
+template ::= {directive | whitespace | newline | text} ;
 ```
 
-## 2. Directives and Whitespace Handling
+## Whitespace, newlines, and text handling
 
 ```
-Directive ::= DirectiveStart Expression DirectiveEnd
-            | ControlDirective
-
-DirectiveStart ::= "{{" Whitespace* | "{{-" Whitespace*  
-DirectiveEnd ::= Whitespace* "}}" | Whitespace* "-}}"
-
-Whitespace ::= " " | "\t" | other whitespace characters
+whitespace ::= (" " | "\t") {whitespace} ;
 ```
 
-The `-` in `{{-` or `-}}` indicates whitespace trimming, removing preceding or following whitespace.
-
-## 3. Variable Declaration and Mutation
-
 ```
-LetStatement ::= DirectiveStart "let" Variable "=" Expression DirectiveEnd
-MutationStatement ::= DirectiveStart "mut" Variable ["." Field]* "=" Expression DirectiveEnd
+newline ::= "\r\n" | "\r" | "\n" ;
 ```
 
-Examples:
 ```
-{{ let x = 42 }}
-{{ mut user.name = "John" }}
+text ::= ? any character sequence not parsed as a directive, whitespace, or a newline ? ;
 ```
 
-## 4. Control Flow
-
-### 4.1 Conditional Statements
+## Directive
 
 ```
-IfStatement ::= DirectiveStart "if" Expression DirectiveEnd Template
-                [DirectiveStart "elseif" Expression DirectiveEnd Template]*
-                [DirectiveStart "else" DirectiveEnd Template]
-                DirectiveStart "/if" DirectiveEnd
+directive ::= comment
+            | literal
+            | assignment
+            | mutation
+            | capture
+            | for
+            | if
+            | include
+            | expression ;
+directive_start ::= ("{{" | "{{-") {whitespace} ;
+directive_end ::= {whitespace} ("}}" | "-}}") ;
 ```
 
-Example:
-```
-{{ if age >= 18 }}
-  Adult content
-{{ elseif age >= 13 }}
-  Teen content
-{{ else }}
-  Children content
-{{ /if }}
-```
-
-### 4.2 Loops
+## Comments
 
 ```
-ForStatement ::= DirectiveStart "for" Variable "in" Expression DirectiveEnd 
-                 Template 
-                 DirectiveStart "/for" DirectiveEnd
+comment ::= directive_start "*" comment_body "*" directive_end ;
+comment_body ::= ? any character sequence ? ;
 ```
 
-Example:
-```
-{{ for item in items }}
-  - {{ item.name }}: {{ item.price }}
-{{ /for }}
-```
-
-## 5. Comments
+### Example
 
 ```
-Comment ::= DirectiveStart "*" [any characters except "*" followed by DirectiveEnd] "*" DirectiveEnd
+{{* this is a comment *}}
+{{-* so * is * this *-}}
+{{ * and
+    this
+    as
+    well
+* }}
 ```
 
-Example:
-```
-{{* This is a comment and won't be rendered *}}
-```
-
-## 6. Capture and Literal Blocks
+## Literals
 
 ```
-CaptureStatement ::= DirectiveStart "capture" Variable DirectiveEnd 
-                     Template 
-                     DirectiveStart "/capture" DirectiveEnd
-
-LiteralStatement ::= DirectiveStart "literal" DirectiveEnd 
-                     [any characters] 
-                     DirectiveStart "/literal" DirectiveEnd
+literal ::= literal_open literal_body literal_close ;
+literal_open ::= directive_start "literal" directive_end ;
+literal_body ::= ? any character sequence ? ;
+literal_close ::= directive_start "/literal" directive_end ;
 ```
 
-Examples:
-```
-{{ capture header }}
-  <h1>Welcome, {{ user.name }}!</h1>
-{{ /capture }}
+### Example
 
+```
 {{ literal }}
-  {{ This will be rendered as-is, not processed }}
+text is rendered exactly {{ as is }} and all {{ directives }}
+are {{* ignored *}}
 {{ /literal }}
 ```
 
-## 7. Include Statements
+## Variable assignment, mutation, and assignment through capture
 
 ```
-IncludeStatement ::= DirectiveStart "include" Variable DirectiveEnd
+assignment ::= directive_start "let" identifier "=" expression directive_end ;
+mutation ::= directive_start "mut" identifier ["." identifier] "=" expression directive_end ;
 ```
 
-Example:
 ```
-{{ include header }}
-```
-
-## 8. Expressions
-
-```
-Expression ::= OrExpression
-
-OrExpression ::= AndExpression ["||" AndExpression]*
-AndExpression ::= ComparisonExpression ["&&" ComparisonExpression]*
-ComparisonExpression ::= AdditiveExpression [ComparisonOperator AdditiveExpression]*
-AdditiveExpression ::= MultiplicativeExpression [("+"|"-") MultiplicativeExpression]*
-MultiplicativeExpression ::= UnaryExpression [("*"|"/") UnaryExpression]*
-UnaryExpression ::= ["!"] PrimaryExpression
-
-ComparisonOperator ::= "==" | "!=" | "<" | "<=" | ">" | ">="
+capture ::= capture_open template capture_close ;
+capture_open ::= directive_start "capture" identifier directive_end ;
+capture_close ::= directive_start "/capture" directive_end ;
 ```
 
-### 8.1 Primary Expressions
+### Example
 
 ```
-PrimaryExpression ::= LiteralExpression
-                    | Variable
-                    | FieldAccess
-                    | FunctionCall
-                    | GroupExpression
-                    | ArrayExpression
-                    | ObjectExpression
-                    | LambdaExpression
-                    | TypeLiteral
-
-LiteralExpression ::= StringLiteral
-                    | NumberLiteral
-                    | BooleanLiteral
-
-TypeLiteral ::= "String" | "Number" | "Boolean" | "Array" | "Object" | "Function" | "DateTime"
-
-Variable ::= Identifier
-FieldAccess ::= Expression "." Identifier
-FunctionCall ::= (Variable | FieldAccess) "(" [ExpressionList] ")"
-GroupExpression ::= "(" Expression ")"
+{{ let x = 1 }}
+{{ mut y = 2 }}
+{{ mut z.a = 3 }}
+{{ capture foo }}the capture body is evaluated {{let x = 1}}{{x}} and the result is stored into the newly declared variable foo{{ /capture}}
 ```
 
-### 8.2 Complex Expressions
+## Looping
 
 ```
-ArrayExpression ::= "[" [ExpressionList] "]"
-ObjectExpression ::= "obj(" [ObjectFieldList] ")"
-LambdaExpression ::= "(" [ParameterList] ")" "=>" [StatementList] Expression
-
-ExpressionList ::= Expression ["," Expression]*
-ObjectFieldList ::= Identifier ":" Expression ["," Identifier ":" Expression]*
-ParameterList ::= Identifier ["," Identifier]*
-StatementList ::= (LetStatement | MutationStatement) ["," (LetStatement | MutationStatement)]* ","
+for ::= for_open template for_close ;
+for_open ::= directive_start "for" identifier "in" expression directive_end ;
+for_close ::= directive_start "/for" directive_end ;
 ```
 
-## 9. Literal Expressions
+### Example
 
 ```
-StringLiteral ::= '"' [StringCharacter]* '"'
-StringCharacter ::= any character except " and \ | '\' EscapeSequence
-EscapeSequence ::= '"' | '\\' | 'n' | 'r' | 't'
-
-NumberLiteral ::= ['-'] Digit+ ['.' Digit+]
-Digit ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
-
-BooleanLiteral ::= 'true' | 'false'
+{{ for x in xs }}
+  <li>{{x}}<li>
+{{ /for}}
 ```
 
-### 9.1 StringLiteral
+## Conditionals
 
-A string literal is enclosed in double quotes and can contain:
-- Any character except unescaped double quotes or backslashes
-- Escaped sequences for special characters:
-  - `\"` for a double quote
-  - `\\` for a backslash
-  - `\n` for a newline
-  - `\r` for a carriage return
-  - `\t` for a tab
-
-Examples:
 ```
-"Hello, World!"
-"Line 1\nLine 2"
-"This has a \"quoted\" word"
+if ::= if_open template {elseif template} [else template] if_close ;
+if_open ::= directive_start "if" expression directive_close ;
+elseif ::= directive_start "elseif" expression directive_close ;
+else ::= directive_start "else" directive_close ;
+if_close ::= directive_start "/if" directive_close ;
 ```
 
-### 9.2 NumberLiteral
+### Example
 
-A number literal can be:
-- An optional minus sign (`-`) for negative numbers
-- One or more digits
-- Optionally followed by a decimal point and one or more digits for the fractional part
-
-Examples:
 ```
-42
--7
-3.14
--0.5
-```
-
-### 9.3 BooleanLiteral
-
-A boolean literal is either `true` or `false` (case-sensitive).
-
-Examples:
-```
-true
-false
+{{ if x > 10 }}
+  x is big
+{{ elseif x > 5 }}
+  x is not small
+{{ elseif x > 1 }}
+  x is small
+{{ else }}
+  there is no x
+{{ /if }}
 ```
 
-All other grammar rules remain as previously defined.
+## Inclusions
 
-## 10. Types
+```
+include ::= directive_start "include" identifier directive_end ;
+```
 
-### 10.1 Type System
+### Example
 
-The language has a first-class type system with the following type literals:
-- `String`: String type
-- `Number`: Numeric type
-- `Boolean`: Boolean type
-- `Array`: Array type
-- `Object`: Object type
-- `Function`: Function type
-- `DateTime`: Date and time type
+```
+{{ include foo }}
+```
 
-Type literals can be used in expressions:
+## Expressions
+
+```
+expression ::= or ;
+or ::= and {"||" and} ;
+and ::= comparison {"&&" comparison} ;
+comparison ::= term {("<" | "<=" | ">" | ">=" | "==" | "!=") term} ;
+term ::= factor {("+" | "-") factor} ;
+factor ::= unary {("*" | "/") unary} ;
+unary ::= {"!"} primary ;
+grouping ::= "(" expression ")" ;
+```
+
+### Example
+
+{{ (1 < 7 || 7 <= 1) && 4 > 3 && 4 >= 4 || 2 * 7 == 14 && 3 + 1 != 4 || !false }}
+
+## Primary Expressions
+
+```
+primary ::= array
+          | object
+          | lambda
+          | grouping
+          | function_call
+          | field_access
+          | string
+          | number
+          | boolean
+          | type_literal
+          | identifier ;
+```
+
+## Arrays
+
+```
+array ::= "[" [identifier {"," identifier}] "]" ;
+```
+
+### Example
+
+```
+{{ let array = [1, 2, "abc", false] }}
+```
+
+## Objects 
+
+```
+object ::= "obj(" [identifier ":" expression {"," identifier ":" expression}] ")" ;
+```
+
+### Example
+
+```
+{{ obj(x: 1, y: 2, obj(foo: "hello", bar: "world")) }}
+```
+
+## Lambdas and functions
+
+```
+lambda ::= "(" [identifier {"," identifier}] ")" "=>" [statement_list] expression ;
+statement_list ::= (assignment | mutation) {"," (assignment | mutation)} "," ;
+
+function_call ::= expression "(" [expression {"," expression}] ")" ;
+```
+
+### Example
+
+```
+{{ let add = (x, y) => x * y }}
+{{ add(1, 2) }}
+{{ myObj.func("foo") }}
+```
+
+## Field access and identifiers
+
+```
+field_access ::= expression "." identifier ;
+
+identifier ::= ["_" | [A-Z] | [a-z]] {"_" | [A-Z] | [a-z]} ;
+```
+
+### Example
+
+```
+{{ foo.bar.baz }}
+{{ let _my_var1 = 1 }}
+```
+
+## Strings
+
+```
+string ::= '"' {char | escape_sequence} '"' ;
+char ::= ? any character except " or \ ? ;
+escape_sequence ::= "\" ('"' | "\" | "n" | "r" | "t") ;
+```
+
+### Example
+
+```
+{{ let myString = "this is a string\nwith several\n\tlines and a tab" }}
+```
+
+## Numbers
+
+```
+number ::= ["-"] (digit {digit} ["." digit {digit}]) | ({digit} "." digit {digit}) ;
+digit ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+```
+
+### Example
+
+```
+{{ [1, -2, -.3, -0.4, 5.01, .6, 0.7 ]}}
+```
+
+## Boolean values
+
+```
+boolean ::= "true" | "false" ;
+```
+
+### Example
+
+```
+{{ let truthy = true }}
+{{ let falsey = false }}
+```
+
+## Type literals
+
+```
+type_literal ::= "String" | "Number" | "Boolean" | "Array" | "Object" | "Function" | "DateTime"
+```
+
+### Examples
+
 ```
 {{ let stringType = String }}
-{{ let isStringType = typeof("hello") == String }}
-```
-
-## Examples
-
-### Working with Types
-
-```
-{{ let str = "hello" }}
-{{ let strType = typeof(str) }}
-{{ if strType == String }}
-  This is a string!
-{{ /if }}
-
-{{ let numType = Number }}
-{{ let x = 42 }}
-{{ let isNumType = typeof(x) == numType }}
-```
-
-### Variable Declaration and Expressions
-```
-{{ let name = "World" }}
-{{ let greeting = concat("Hello, ", name) }}
-{{ greeting }}
-```
-
-### Conditionals
-```
-{{ let score = 85 }}
-{{ if score >= 90 }}
-  A grade
-{{ elseif score >= 80 }}
-  B grade
-{{ else }}
-  Lower grade
-{{ /if }}
-```
-
-### Loops and Arrays
-```
-{{ let fruits = ["Apple", "Banana", "Cherry"] }}
-<ul>
-{{ for fruit in fruits }}
-  <li>{{ fruit }}</li>
-{{ /for }}
-</ul>
-```
-
-### Functions and Lambdas
-```
-{{ let numbers = [1, 2, 3, 4, 5] }}
-{{ let doubled = map(numbers, (x) => x * 2) }}
-{{ join(doubled, ", ") }}
-```
-
-### Objects
-```
-{{ let user = obj(name: "John", age: 30) }}
-Name: {{ user.name }}, Age: {{ user.age }}
+{{ stringType == String }}
 ```
