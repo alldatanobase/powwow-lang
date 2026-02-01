@@ -5106,5 +5106,19 @@ string";
             // Assert
             Assert.That(result, Is.EqualTo("<div><h1>My Page</h1></div>"));
         }
+
+        
+        [Test]
+        public void NestedCaptures()
+        {
+            // Arrange
+            string template = @"{{ capture x }}{{ capture y }}foo{{ /capture }}nested val: {{ y }}{{ /capture }}{{ x }}";
+
+            // Act
+            string result = _interpreter.Interpret(template, _emptyData);
+
+            // Assert
+            Assert.That(result, Is.EqualTo("nested val: foo"));
+        }
     }
 }
