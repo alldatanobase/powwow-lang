@@ -8,6 +8,7 @@ using PowwowLang.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web.UI.WebControls;
 
 namespace PowwowLang.Runtime
 {
@@ -143,6 +144,12 @@ namespace PowwowLang.Runtime
             {
                 var processedBody = ProcessIncludes(forNode.Body, descendantIncludes);
                 return new ForNode(forNode.IteratorName, forNode.Collection, processedBody, node.Location);
+            }
+
+            if (node is CaptureNode captureNode)
+            {
+                var processedBody = ProcessIncludes(captureNode.Body, descendantIncludes);
+                return new CaptureNode(captureNode.VariableName, processedBody, node.Location);
             }
 
             // For all other node types, return as is
