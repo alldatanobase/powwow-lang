@@ -51,6 +51,49 @@ Also see:
 
 ## String
 
+Strings are expressed as literal sequences of characters inside of double quotes such as "foo". Unicode is supported.
+
+```
+{{- let myFirstString = "Hello world! 😀" -}}{{ myFirstString }}
+```
+
+```
+Output:
+Hello world! 😀
+```
+
+The backslash is used as an escape modifier for certain characters.
+
+|Escape sequence|Outputs|
+|---|---|
+|```\"```|```"```|
+|```\\```|```\```|
+|```\r```|Carriage return|
+|```\n```|Line feed|
+|```\t```|Tab|
+
+```
+Note: Unicode escapes are not currently supported.
+```
+
+You can check if a value is a string by comparing with the `String` type literal.
+
+```
+{{- let a = 1 -}}
+{{- let b = "blue" -}}
+{{ typeof(a) == String }}
+{{ typeof(b) == String }}
+```
+
+```
+Output:
+false
+true
+```
+
+Also see:
+* [Built-in functions for strings](#)
+
 ## Boolean
 
 ## Array

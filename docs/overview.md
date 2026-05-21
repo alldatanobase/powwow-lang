@@ -5,8 +5,8 @@ The impetus for this project:
 * I needed to be able to interpret the code from the templates in .NET Framework assemblies with zero dependencies
   * Some Liquid interpreters fit this bill, but I am not a fan of Liquid, as I find myself wasting time with (my perception of) the idiosyncracies of the language whenever I need to pick it up
   * So I wanted something where the semantics were similar enough to other languages I use daily that, after not having touched it for weeks or even months, I can easily read and be productive with it in minutes
-* I needed to be able to bind data from the host language into the interpret easily
-* I wanted to be able to compile new built-in functions alongside the interpreter, or define lambdas in code for specific template formatting requirements
+* I needed to be able to bind data from the host language into the interpreter easily
+* I wanted to be able to compile new built-in functions alongside the interpreter for often-used functions, or define lambdas in code for one-off things
 * I wanted templates to be composable
 
 The result is Powwow Lang, a small templating language. The most obvious sources of inspiration are JavaScript, Handlebars, and Liquid. Some key features:
