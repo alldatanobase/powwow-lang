@@ -1,5 +1,11 @@
 # Data types
 
+Powwow is a dynamically typed language. Variables are not declared with a type, and the same name may be rebound to a value of a different type over the course of a template. The type of a value is determined at the moment it is evaluated, and operators and built-in functions check the types of their operands at evaluation time. Passing a value of the wrong type raises an evaluation error rather than silently coercing.
+
+The language deliberately has no concept of `null` or `undefined`. Every variable that exists is bound to a real value of one of the types described in this document, and every field of an object holds a real value. Referencing a name that has not been declared, or accessing a field that does not exist on an object, is an evaluation error rather than a way to obtain an "empty" value. When the possible absence of something needs to be represented, the template author is expected to model it explicitly (for example, with a boolean flag, a sentinel value, or by testing for a field's presence with `contains` before reading it).
+
+The following sections describe each of the built-in data types.
+
 ## Number
 
 Numbers are expressed as literals such as 42 and -2.71828. The primitive data type for a number is a floating point value. There are no integer or unsigned-specific data types for numbers.
@@ -289,7 +295,7 @@ Also see:
 
 ## Object
 
-Objects are created with the `obj(...)` constructor, listing fields as comma-separated `key: expression` pairs. Field names are bare identifiers (not quoted), and field values may be of any type — including other objects, arrays, lambdas, or function references.
+Objects are created with the `obj(...)` constructor, listing fields as comma-separated `key: expression` pairs. Field names are bare identifiers (not quoted), and field values may be of any type, including other objects, arrays, lambdas, or function references.
 
 ```
 {{- let point = obj(x: 1, y: 2) -}}
@@ -321,7 +327,7 @@ Ada
 false
 ```
 
-The fields of an existing object can be updated with `mut`, using dot notation on the left-hand side. Note that `mut` reassigns or updates an existing binding — it does not add new fields to an object.
+The fields of an existing object can be updated with `mut`, using dot notation on the left-hand side. Note that `mut` reassigns or updates an existing binding. It does not add new fields to an object.
 
 ```
 {{- let user = obj(name: "Ada", age: 36) -}}
@@ -359,7 +365,7 @@ Output:
 20
 ```
 
-Like arrays, objects are reference types. Assigning an object to a new variable does not copy it — both names refer to the same underlying value, so mutations through one are visible through the other.
+Like arrays, objects are reference types. Assigning an object to a new variable does not copy it. Both names refer to the same underlying value, so mutations through one are visible through the other.
 
 ```
 {{- let x = obj(a: 1, b: 2) -}}
@@ -423,7 +429,7 @@ Output:
 Jan 8, 2024
 ```
 
-DateTimes are shifted forward or backward in time with the `addYears`, `addMonths`, `addDays`, `addHours`, `addMinutes`, and `addSeconds` functions. Each takes a DateTime and an integer offset (negative values shift backward) and returns a new DateTime — the original is not modified.
+DateTimes are shifted forward or backward in time with the `addYears`, `addMonths`, `addDays`, `addHours`, `addMinutes`, and `addSeconds` functions. Each takes a DateTime and an integer offset (negative values shift backward) and returns a new DateTime. The original is not modified.
 
 ```
 {{- let d = datetime("2024-01-08 10:10:10") -}}
