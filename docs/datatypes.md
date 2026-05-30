@@ -47,7 +47,7 @@ false
 ```
 
 Also see:
-* [Built-in functions for numbers](#)
+* [Built-in functions for numbers](functions.md#number-functions)
 
 ## String
 
@@ -92,7 +92,7 @@ true
 ```
 
 Also see:
-* [Built-in functions for strings](#)
+* [Built-in functions for strings](functions.md#string-functions)
 
 ## Boolean
 
@@ -173,7 +173,7 @@ false
 ```
 
 Also see:
-* [Built-in functions for booleans](#)
+* [Built-in functions for booleans](functions.md#control-flow-functions)
 
 ## Array
 
@@ -285,7 +285,7 @@ false
 ```
 
 Also see:
-* [Built-in functions for arrays](#)
+* [Built-in functions for arrays](functions.md#array-functions)
 
 ## Object
 
@@ -390,7 +390,86 @@ false
 ```
 
 Also see:
-* [Built-in functions for objects](#)
+* [Built-in functions for objects](functions.md#object-functions)
+
+## Function
+
+Functions are first-class values. The literal form is a lambda: a parenthesized parameter list, an arrow (`=>`), and a single result expression. A lambda may take zero or more parameters.
+
+```
+{{- let square = (x) => x * x -}}
+{{- let add = (a, b) => a + b -}}
+{{ square(5) }}
+{{ add(3, 4) }}
+```
+```
+Output:
+25
+7
+```
+
+Because functions are values, they can be assigned to variables, stored in object fields, passed as arguments, and returned from other functions. The higher-order array functions such as `map`, `filter`, `reduce`, and `order` take a lambda as an argument.
+
+```
+{{- let nums = [1, 2, 3, 4] -}}
+{{ map(nums, (x) => x * x) }}
+```
+```
+Output:
+[1, 4, 9, 16]
+```
+
+A lambda closes over the variables in scope where it is defined, capturing them for later use.
+
+```
+{{- let factor = 10 -}}
+{{- let scale = (x) => x * factor -}}
+{{ scale(5) }}
+```
+```
+Output:
+50
+```
+
+A lambda body may declare local `let` or `mut` statements before its result expression, each followed by a comma.
+
+```
+{{- let hypotenuseSquared = (a, b) => let a2 = a * a, let b2 = b * b, a2 + b2 -}}
+{{ hypotenuseSquared(3, 4) }}
+```
+```
+Output:
+25
+```
+
+When a function value is rendered directly, it is printed as `lambda(...)` listing its parameter names. Built-in functions are also of type `Function`.
+
+```
+{{- let square = (x) => x * x -}}
+{{ square }}
+```
+```
+Output:
+lambda(x)
+```
+
+You can check if a value is a function by comparing with the `Function` type literal.
+
+```
+{{- let a = (x) => x -}}
+{{- let b = "blue" -}}
+{{ typeof(a) == Function }}
+{{ typeof(b) == Function }}
+```
+
+```
+Output:
+true
+false
+```
+
+Also see:
+* [Built-in functions](functions.md)
 
 ## DateTime
 
@@ -484,4 +563,4 @@ false
 ```
 
 Also see:
-* [Built-in functions for datetimes](#)
+* [Built-in functions for datetimes](functions.md#datetime-functions)

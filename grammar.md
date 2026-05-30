@@ -183,7 +183,7 @@ primary ::= array
 ## Arrays
 
 ```
-array ::= "[" [identifier {"," identifier}] "]" ;
+array ::= "[" [expression {"," expression}] "]" ;
 ```
 
 ### Example
@@ -201,7 +201,7 @@ object ::= "obj(" [identifier ":" expression {"," identifier ":" expression}] ")
 ### Example
 
 ```
-{{ obj(x: 1, y: 2, obj(foo: "hello", bar: "world")) }}
+{{ obj(x: 1, y: 2, z: obj(foo: "hello", bar: "world")) }}
 ```
 
 ## Lambdas and functions
