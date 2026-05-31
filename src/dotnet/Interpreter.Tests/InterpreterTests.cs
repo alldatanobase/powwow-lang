@@ -5059,5 +5059,66 @@ string";
             // Assert
             Assert.That(result, Is.EqualTo("3 3"));
         }
+
+        [Test]
+        public void MultipleElseIfCanBeChained()
+        {
+            // Arrange
+            string template = @"{{ let x = 1 }}{{ if x > 10 }}>10{{ elseif x > 5 }}>5{{ elseif x > 0}}>0{{ else }}<0{{ /if }}";
+
+            // Act
+            string result = _interpreter.Interpret(template, _emptyData);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(">0"));
+        }
+
+        [Test]
+        public void NumberDeclarationWithDecimalWithoutFractionalPart()
+        {
+            // Arrange
+            string template = @"{{ let x = 0. }}{{ let y = 3. }}{{ x }} {{ y }}";
+
+            // Act
+            string result = _interpreter.Interpret(template, _emptyData);
+
+            // Assert
+            Assert.That(result, Is.EqualTo("0 3"));
+        }
+
+        [Test]
+        public void IncludeTemplateInCapture()
+        {
+            // Arrange
+            var registry = new TemplateRegistry();
+            registry.RegisterTemplate("header", "<h1>{{title}}</h1>");
+
+            var interpreter = new Interpreter(registry);
+
+            var template = "{{ capture snippet }}<div>{{include header}}</div>{{ /capture }}{{ snippet }}";
+
+            var data = new ExpandoObject();
+            ((IDictionary<string, object>)data).Add("title", "My Page");
+
+            // Act
+            var result = interpreter.Interpret(template, data);
+
+            // Assert
+            Assert.That(result, Is.EqualTo("<div><h1>My Page</h1></div>"));
+        }
+
+        
+        [Test]
+        public void NestedCaptures()
+        {
+            // Arrange
+            string template = @"{{ capture x }}{{ capture y }}foo{{ /capture }}nested val: {{ y }}{{ /capture }}{{ x }}";
+
+            // Act
+            string result = _interpreter.Interpret(template, _emptyData);
+
+            // Assert
+            Assert.That(result, Is.EqualTo("nested val: foo"));
+        }
     }
 }

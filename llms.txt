@@ -1,0 +1,233 @@
+# Powwow Lang — LLM reference
+
+This is a complete, self-contained reference for Powwow, a small embeddable templating language for .NET. It is intended to be loaded as context so you can read and write Powwow templates correctly. Human-facing docs: README.md, docs/overview.md, docs/datatypes.md, docs/directives.md, docs/functions.md, grammar.md.
+
+## What Powwow is
+
+Powwow renders data-driven text (originally HTML email templates). A template is plain text with `{{ ... }}` directives embedded in it. Text outside directives is emitted verbatim; directives are evaluated. The interpreter is written in dependency-free .NET Framework and embeds into host apps, which supply data, custom functions, and template resolution. The host calls `interpreter.Interpret(templateString, dataObject)` and gets back a rendered string.
+
+Influences: JavaScript (expressions, lambdas, objects), Handlebars/Liquid (directives, whitespace control). Objects are prototype-less. There is no `null` type.
+
+## Directives
+
+- `{{ expr }}` — evaluate an expression and emit its result. E.g. `{{ user.name }}`, `{{ 2 + 3 }}`, `{{ toUpper(s) }}`.
+- Whitespace inside a directive is insignificant: `{{x}}` == `{{ x }}`.
+- Keyword directives: `let`, `mut`, `if`/`elseif`/`else`/`/if`, `for`/`/for`, `capture`/`/capture`, `include`, `literal`/`/literal`, and comments.
+
+### Whitespace control
+
+Whitespace and newlines around a directive are part of the output. Add a hyphen to a delimiter to trim:
+- `{{-` trims whitespace and the single newline IMMEDIATELY BEFORE the directive.
+- `-}}` trims whitespace and the single newline IMMEDIATELY AFTER the directive.
+- Each marker trims only one adjacent newline (plus spaces/tabs on that side), not a whole run of blank lines.
+- Use these to keep output clean, especially around `let`/`for`/`if` lines that emit nothing themselves.
+
+Example:
+```
+{{- let name = "Ada" -}}
+Hello, {{ name }}!
+```
+Output: `Hello, Ada!`
+
+### Comments
+
+`{{* ... *}}` — never evaluated, emits nothing. May span lines and contain `{{`/`}}`. Hyphens allowed: `{{-* ... *-}}`.
+
+### Literal blocks
+
+`{{ literal }} ... {{ /literal }}` — emits the body verbatim; directives inside are NOT interpreted. May be nested.
+
+## Variables: let / mut
+
+- `{{ let x = expr }}` declares and binds a new variable.
+- `{{ mut x = expr }}` reassigns an EXISTING variable.
+- `{{ mut obj.field = expr }}` updates an EXISTING field of an object (dot notation, one level).
+- `mut` does NOT create new variables or add new object fields — only `let` (variables) and `obj(...)` (fields) do.
+
+## Conditionals: if
+
+```
+{{ if cond }} ... {{ elseif cond2 }} ... {{ else }} ... {{ /if }}
+```
+The condition must be a boolean expression. `elseif`/`else` are optional. There is also a functional inline form: the `if(cond, then, else)` built-in (returns a value; both branches lazy).
+
+## Loops: for
+
+```
+{{ for item in arrayExpr }} ... {{ /for }}
+```
+Iterates an array, binding each element to the loop variable. Pairs with `range(...)` and the `rangeX(...)` date functions.
+
+## Capture
+
+```
+{{ capture name }} ...body... {{ /capture }}
+```
+Evaluates the body, stores the RENDERED STRING into a new variable `name`, and emits nothing at the site. Body may contain any directives (loops, if, include).
+
+## Composition: include
+
+`{{ include templateName }}` renders another template inline by bare name. Requires the host to supply an `ITemplateResolver`; otherwise unavailable. Included templates share the host's data and functions. Circular includes are detected and error.
+
+## Data types
+
+Powwow has 7 types. Check a value's type with `typeof(v)` compared to a type literal: `Number`, `String`, `Boolean`, `Array`, `Object`, `Function`, `DateTime`.
+
+- **Number** — floating point (decimal); no separate int type. Literals: `42`, `-2.5`, `.6`, `0.7`. Operators `+ - * /` with parentheses and standard precedence. Note: decimal SCALE propagates, so `2.5 + 1.5` renders `4.0` and integer division like `10 / 4` renders `2.5`; results that stay integer-scaled render without a decimal point.
+- **String** — double-quoted, Unicode OK: `"Hello 😀"`. Escapes: `\"` `\\` `\n` `\r` `\t`. No unicode escapes. Equality with `==`/`!=`.
+- **Boolean** — `true` / `false`. Operators `&&` `||` `!` (short-circuit). Equality `==`/`!=`. No ordering (`< <= > >=` are numbers-only).
+- **Array** — `[expr, expr, ...]`, mixed types allowed, may nest: `[1, "two", false, [4,5]]`. REFERENCE TYPE: `==` is identity, not element-wise; assignment shares the same underlying array. Index with the `at(arr, i)` function — there is NO `arr[0]` subscript syntax.
+- **Object** — `obj(key: expr, ...)` with bare (unquoted) identifier keys, prototype-less. Read fields with dot notation `o.field` (errors if absent — guard with `contains`) or `get(o, "field")` for computed keys. REFERENCE TYPE like arrays. Functions can be fields and called via dot: `o.fn(x)`.
+- **DateTime** — no literal; produced by `datetime("...")`, `now()`, `utcNow()`. Renders ISO 8601 by default; `format(d, fmt)` for .NET format strings. Equality is by instant.
+- **Function** — lambdas and built-ins are first-class values; `typeof(lambda) == Function`.
+
+## Operators and precedence
+
+Lowest to highest: `||`, then `&&`, then comparison (`< <= > >= == !=`), then `+ -`, then `* /`, then unary `!`, then primary. Group with `( )`. Comparisons and arithmetic are infix; ordering operators apply to numbers only; `==`/`!=` work on all types (reference identity for arrays/objects).
+
+## Lambdas, functions, closures
+
+- Lambda: `(a, b) => expr`. Zero args: `() => expr`. Optional local statements before the result: `(x) => let y = x * 2, y + 1`.
+- First-class: pass lambdas to `map`/`filter`/`reduce`/`order`, store in variables or object fields.
+- Closures capture surrounding variables. Recursion is supported (host sets a max recursion depth, default 1000).
+- Built-ins are overloaded by argument type; passing an unsupported type errors.
+
+## Built-in functions
+
+Signatures below; `arg = default` marks optional trailing args. Built-ins never mutate arguments and return new values. Failures (bad index, missing field, unparseable string) raise errors rather than returning null.
+
+Type/convert:
+- `typeof(value)` -> type literal
+- `string(number|boolean)` -> String  ("true"/"false" for booleans)
+- `number(string)` -> Number (errors if not numeric)
+- `numeric(string)` -> Boolean (parseable?)
+
+Numbers:
+- `range(start, end, step = 1)` -> Array of Number; end EXCLUSIVE; step may be negative, not zero
+- `mod(a, b)` -> Number (integer remainder; b != 0)
+- `floor(n)`, `ceil(n)` -> Number
+- `round(n, decimals = 0)` -> Number
+
+Strings:
+- `length(s)` -> Number
+- `empty(s)` -> Boolean
+- `concat(a, b)` -> String
+- `contains(s, search)`, `startsWith(s, search)`, `endsWith(s, search)` -> Boolean
+- `indexOf(s, search)`, `lastIndexOf(s, search)` -> Number (-1 if absent)
+- `substring(s, start, end = -1)` -> String (start inclusive, end exclusive; to end if omitted)
+- `toUpper(s)`, `toLower(s)`, `trim(s)` -> String
+- `explode(s, delimiter)` -> Array (inverse of join)
+
+Arrays:
+- `length(xs)` -> Number
+- `at(xs, index)` -> element (0-based; out-of-bounds errors). This is how you index arrays.
+- `first(xs)`, `last(xs)` -> element (error if empty); `rest(xs)` -> Array (all but first)
+- `any(xs)` -> Boolean (non-empty?)
+- `concat(a, b)` -> Array
+- `take(xs, n)`, `skip(xs, n)` -> Array
+- `map(xs, (x) => ...)` -> Array
+- `filter(xs, (x) => boolean)` -> Array
+- `reduce(xs, (acc, x) => ..., initial)` -> value
+- `order(xs)` | `order(xs, ascendingBool)` | `order(xs, (a, b) => number)` -> Array (sorted copy)
+- `group(xs, fieldName)` -> Object keyed by that string field; values are arrays
+- `join(xs, delimiter)` -> String
+
+Objects:
+- `get(obj, key)` -> value (errors if missing)
+- `contains(obj, key)` -> Boolean
+- `keys(obj)` -> Array of String
+
+DateTime:
+- `datetime(s)` -> DateTime (parse; errors if invalid)
+- `now()`, `utcNow()` -> DateTime
+- `format(d, fmtString)` -> String (.NET format)
+- `addYears(d, n)`, `addMonths`, `addDays`, `addHours`, `addMinutes`, `addSeconds` -> new DateTime (n may be negative)
+- `rangeYear(start, end, step = 1)`, `rangeMonth`, `rangeDay`, `rangeHour`, `rangeMinute`, `rangeSecond` -> Array of DateTime; end EXCLUSIVE; step positive
+
+JSON:
+- `fromJson(s)` -> value (objects/arrays/primitives)
+- `toJson(value, formatted = false)` -> String
+
+Web/encoding:
+- `htmlEncode(s)`, `htmlDecode(s)`, `urlEncode(s)`, `urlDecode(s)` -> String
+- `uri(s)` -> Object with URL parts: Scheme, Host, Port, AbsolutePath, PathAndQuery, Query, Fragment, Segments (Array), plus booleans like IsAbsoluteUri, IsFile, IsLoopback
+
+Control flow:
+- `if(cond, then, else)` -> value (both branches evaluated lazily)
+
+Dataverse (only if host supplies a Dataverse service):
+- `fetch(fetchXml)` -> query results
+
+## Common pitfalls (read before writing templates)
+
+1. No `arr[0]` subscript — use `at(arr, 0)`. No `obj["k"]` — use `get(obj, "k")` or `obj.k`.
+2. Accessing a missing object field ERRORS. Guard with `contains(obj, "field")` first.
+3. `mut` only reassigns existing variables/fields; it cannot add a new field to an object or declare a new variable.
+4. Arrays and objects are reference types: `==` compares identity, not contents; copying a variable shares the same value (mutations are visible through both names).
+5. Strings that look like dates are still strings; convert with `datetime(...)` before using date functions.
+6. Booleans don't support `< <= > >=` (numbers only).
+7. There is no `null`. Functions error instead of returning null/empty.
+8. Decimal scale shows through: division and decimal literals can render trailing decimals (e.g. `4.0`). Use `round(x, n)` to control display.
+9. Whitespace around no-output directives (`let`, `for`, `if`) stays in the output unless you use `{{-`/`-}}`.
+10. `range`/`rangeX` ends are EXCLUSIVE.
+
+## Worked examples
+
+Greeting with inline conditional:
+```
+{{- let user = obj(name: "Ada", premium: true) -}}
+Hi {{ user.name }}, {{ if(user.premium, "thanks for being premium!", "enjoy your free account!") }}
+```
+-> `Hi Ada, thanks for being premium!`
+
+List with a loop and trimming:
+```
+{{- let xs = ["red", "green", "blue"] -}}
+{{- for x in xs -}}
+- {{ x }}
+{{ /for -}}
+```
+->
+```
+- red
+- green
+- blue
+```
+
+Transform a collection:
+```
+{{- let nums = [1, 2, 3, 4, 5] -}}
+{{ map(nums, (x) => x * x) }}
+{{ filter(nums, (x) => x > 2) }}
+{{ reduce(nums, (acc, x) => acc + x, 0) }}
+```
+->
+```
+[1, 4, 9, 16, 25]
+[3, 4, 5]
+15
+```
+
+Objects and safe field access:
+```
+{{- let user = obj(name: "Ada", age: 36) -}}
+{{ user.name }} is {{ user.age }}
+{{ if contains(user, "email") }}{{ user.email }}{{ else }}no email on file{{ /if }}
+```
+->
+```
+Ada is 36
+no email on file
+```
+
+Dates:
+```
+{{- let d = datetime("2024-01-08 10:10:10") -}}
+{{ format(d, "yyyy-MM-dd") }}
+{{ format(addDays(d, 30), "MMM d, yyyy") }}
+```
+->
+```
+2024-01-08
+Feb 7, 2024
+```

@@ -10,6 +10,10 @@ namespace PowwowLang.Ast
         private readonly string _variableName;
         private readonly AstNode _body;
 
+        public string VariableName { get { return _variableName; } }
+
+        public AstNode Body { get { return _body; } }
+
         public CaptureNode(string variableName, AstNode body, SourceLocation location) : base(location)
         {
             _variableName = variableName;
