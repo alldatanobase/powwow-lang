@@ -84,6 +84,7 @@ You can extend the language for your host:
 
 * [Overview](docs/overview.md) — motivation and design philosophy
 * [Data types](docs/datatypes.md) — numbers, strings, booleans, arrays, objects, and dates
+* [Operators](docs/operators.md) — arithmetic, comparison, logical, and unary operators
 * [Template syntax and directives](docs/directives.md) — directives, whitespace control, conditionals, loops, capture, and composition
 * [Built-in functions](docs/functions.md) — the full function reference
 * [Embedding](docs/embedding.md) — host integration: data binding, custom functions, composition, and Dataverse
