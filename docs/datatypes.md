@@ -200,17 +200,30 @@ Output:
 []
 ```
 
-Elements are accessed by zero-based index using the built-in `at` function. There is no subscript (`arr[0]`) syntax.
+Elements are accessed by zero-based index. Powwow supports both subscript syntax, `xs[i]`, and the built-in `at` function, `at(xs, i)`; the two are equivalent. The index may be any expression that evaluates to a whole number. A fractional, negative, or out-of-bounds index raises an evaluation error.
 
 ```
 {{- let xs = ["a", "b", "c"] -}}
-{{ at(xs, 0) }}
-{{ at(xs, 2) }}
+{{ xs[0] }}
+{{ xs[2] }}
+{{ at(xs, 1) }}
 ```
 ```
 Output:
 a
 c
+b
+```
+
+Subscripts can be chained, which is convenient for reaching into nested arrays.
+
+```
+{{- let grid = [[1, 2, 3], [4, 5, 6]] -}}
+{{ grid[1][2] }}
+```
+```
+Output:
+6
 ```
 
 The `length` function returns the number of elements, and `first`, `last`, and `rest` give convenient access to the head, tail element, and remainder.
@@ -325,6 +338,20 @@ Output:
 Ada
 36
 false
+```
+
+A field can also be read with subscript syntax using a string key, `user["name"]`. This is equivalent to the `get` function and is especially useful when the key is computed at runtime. As with dot access, indexing a field that does not exist raises an evaluation error. The index must be a string; indexing an object with a number is an error.
+
+```
+{{- let user = obj(name: "Ada", age: 36) -}}
+{{- let field = "age" -}}
+{{ user["name"] }}
+{{ user[field] }}
+```
+```
+Output:
+Ada
+36
 ```
 
 The fields of an existing object can be updated with `mut`, using dot notation on the left-hand side. Note that `mut` reassigns or updates an existing binding. It does not add new fields to an object.
