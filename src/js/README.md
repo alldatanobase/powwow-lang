@@ -2,7 +2,7 @@
 
 A TypeScript port of the Powwow interpreter, intended to render templates in the browser in real time (live preview) alongside the canonical .NET interpreter used for server-side rendering.
 
-The non-negotiable goal is **output parity** with .NET: for the same template and data, this port must produce byte-identical output. See [../../docs/js-port-parity.md](../../docs/js-port-parity.md) for the full list of behaviors that differ between .NET and JavaScript and must be reimplemented (not delegated to native JS).
+The non-negotiable goal is **output parity** with .NET: for the same template and data, this port must produce byte-identical output. See [js-port-parity.md](./js-port-parity.md) for the full list of behaviors that differ between .NET and JavaScript and must be reimplemented (not delegated to native JS).
 
 ## Status
 

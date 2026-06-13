@@ -3,7 +3,7 @@
  *
  * Intentionally preserves the .NET tokenizer's behavior (including its keyword
  * prefix-matching and ordering) so the JS port produces the same token stream.
- * Output parity depends on this. See docs/js-port-parity.md.
+ * Output parity depends on this. See js-port-parity.md.
  */
 
 import { Token, SourceLocation, TemplateParsingError, type TokenType } from "./token.ts";

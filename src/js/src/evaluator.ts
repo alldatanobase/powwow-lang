@@ -1,7 +1,7 @@
 /**
  * Evaluator + Interpreter — ports the per-node Evaluate() logic from the .NET
  * AST and the top-level Interpreter (lex -> parse -> resolve includes -> evaluate).
- * Output parity with .NET is the goal; see docs/js-port-parity.md.
+ * Output parity with .NET is the goal; see js-port-parity.md.
  */
 
 import { Lexer } from "./lexer.ts";

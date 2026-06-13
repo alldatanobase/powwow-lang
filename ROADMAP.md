@@ -3,7 +3,7 @@
 A working list of potential improvements to Powwow. Nothing here is committed work — it is a place to capture and prioritize ideas. Items are grouped by theme with a rough effort estimate. Two areas have their own detailed documents:
 
 * [Dataverse: current behavior and proposed improvements](docs/dataverse-future.md)
-* [JavaScript port: .NET parity notes](docs/js-port-parity.md)
+* [JavaScript port: .NET parity notes](src/js/js-port-parity.md)
 
 ## Near-term, high impact
 
@@ -20,7 +20,7 @@ These are small and immediately felt by anyone writing templates — human or LL
 * **Structural equality** — `equals(a, b)` deep compare, since `==` is reference identity for arrays/objects. *(low)*
 * **Safe-navigation operator** — `?.`-style field access as an alternative to `default()`. *(medium)*
 * **Date arithmetic** — a `diff`/`between` (inverse of the `addX` family), `dayOfWeek`, and a `datetime(string, format)` overload for explicit parsing. *(low/medium)*
-* **Time-zone conversion** — `toTimeZone`/`toLocal`; Dataverse dates arrive as UTC but notifications want local time. *(medium)* Coordinate with the [JS-port date parity](docs/js-port-parity.md).
+* **Time-zone conversion** — `toTimeZone`/`toLocal`; Dataverse dates arrive as UTC but notifications want local time. *(medium)* Coordinate with the [JS-port date parity](src/js/js-port-parity.md).
 * **Number/currency formatting** — a `format(number, pattern)` for currency and grouping. *(low/medium)*
 * **Regex** — a `match`/`replace` with patterns. *(medium)*
 
@@ -41,7 +41,7 @@ Relevant because templates may be authored by non-engineers or produced by an LL
 
 ## Bigger bets
 
-* **JavaScript port** — render templates in the browser in real time for live preview. The major work is .NET output parity, especially numbers and dates. See [JavaScript port: .NET parity notes](docs/js-port-parity.md). *(large)*
+* **JavaScript port** — render templates in the browser in real time for live preview. The major work is .NET output parity, especially numbers and dates. See [JavaScript port: .NET parity notes](src/js/js-port-parity.md). *(large)*
 * **Modern .NET build with compiler targets** — already named as a goal in [the overview](docs/overview.md); the current interpreter is intentionally unoptimized. *(large)*
 * **Dataverse integration improvements** — preserve the `EntityReference` display name, richer value handling, and the items above. See [Dataverse future](docs/dataverse-future.md). *(varies)*
 

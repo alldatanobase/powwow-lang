@@ -13,7 +13,7 @@
  *      is 4 — matching .NET `Math.Round` / `Convert.ToInt32`, NOT JS `Math.round`.
  *
  * We model the value as { mantissa: bigint, scale: number >= 0 }, value = mantissa / 10^scale,
- * and replicate .NET's per-operation scale rules. See docs/js-port-parity.md.
+ * and replicate .NET's per-operation scale rules. See js-port-parity.md.
  */
 
 const MAX_PRECISION = 28; // .NET decimal supports 28-29 significant digits.

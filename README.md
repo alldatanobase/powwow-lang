@@ -95,7 +95,7 @@ Forward-looking:
 
 * [Roadmap](ROADMAP.md) — potential improvements and future work
 * [Dataverse: current behavior and proposed improvements](docs/dataverse-future.md)
-* [JavaScript port: .NET parity notes](docs/js-port-parity.md)
+* [JavaScript port: .NET parity notes](src/js/js-port-parity.md)
 
 ## Status
 

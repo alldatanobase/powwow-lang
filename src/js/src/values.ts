@@ -9,7 +9,7 @@
  *     so arrays/objects are reference types (mutations to their box are shared) while a
  *     `mut y = ...` only swaps cell y's box. Reference identity == is box identity.
  *
- * Output() forms must match .NET byte-for-byte. See docs/js-port-parity.md.
+ * Output() forms must match .NET byte-for-byte. See js-port-parity.md.
  */
 
 import { PowwowNumber } from "./number.ts";
