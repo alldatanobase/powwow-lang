@@ -289,7 +289,7 @@ Output:
 
 ### `at(xs, index)`
 
-Returns the element at the zero-based `index`. There is no subscript (`xs[0]`) syntax — `at` is how arrays are indexed. An out-of-bounds index raises an error.
+Returns the element at the zero-based `index`. Equivalent to subscript syntax, `xs[index]` (see [Array indexing](datatypes.md#array)). An out-of-bounds index raises an error.
 
 ```
 {{ at(["a", "b", "c"], 1) }}
@@ -448,7 +448,7 @@ a, b, c
 
 ### `get(obj, key)`
 
-Reads a field by a `String` `key` — useful when the key is computed. Raises an error if the field is absent (guard with `contains`). For a literal key, dot access (`obj.field`) is usually clearer.
+Reads a field by a `String` `key` — useful when the key is computed. Equivalent to subscript syntax, `obj[key]` (see [Object indexing](datatypes.md#object)). Raises an error if the field is absent (guard with `contains`). For a literal key, dot access (`obj.field`) is usually clearer.
 
 ```
 {{- let user = obj(name: "Ada", age: 36) -}}

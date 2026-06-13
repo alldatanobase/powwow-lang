@@ -57,7 +57,12 @@ namespace PowwowLang.Lib
             switch (attributeValue)
             {
                 case EntityReference entityRef:
-                    return new Value(new StringValue(entityRef.Id.ToString()));
+                    return new Value(new ObjectValue(new Dictionary<string, Value>()
+                    {
+                        { "id", new Value(new StringValue(entityRef.Id.ToString())) },
+                        { "name", new Value(new StringValue(entityRef.Name)) },
+                        { "logicalName", new Value(new StringValue(entityRef.LogicalName)) }
+                    }));
 
                 case Guid guid:
                     return new Value(new StringValue(guid.ToString()));

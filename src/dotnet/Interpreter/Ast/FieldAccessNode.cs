@@ -41,7 +41,7 @@ namespace PowwowLang.Ast
             }
 
             throw new TemplateEvaluationException(
-                $"Object does not contain field '{_fieldName}'",
+                $"Expected type of object but found '{evaluated.TypeOf()}'",
                 context,
                 _object);
         }

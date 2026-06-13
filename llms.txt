@@ -76,8 +76,8 @@ Powwow has 7 types. Check a value's type with `typeof(v)` compared to a type lit
 - **Number** — floating point (decimal); no separate int type. Literals: `42`, `-2.5`, `.6`, `0.7`. Operators `+ - * /` with parentheses and standard precedence. Note: decimal SCALE propagates, so `2.5 + 1.5` renders `4.0` and integer division like `10 / 4` renders `2.5`; results that stay integer-scaled render without a decimal point.
 - **String** — double-quoted, Unicode OK: `"Hello 😀"`. Escapes: `\"` `\\` `\n` `\r` `\t`. No unicode escapes. Equality with `==`/`!=`.
 - **Boolean** — `true` / `false`. Operators `&&` `||` `!` (short-circuit). Equality `==`/`!=`. No ordering (`< <= > >=` are numbers-only).
-- **Array** — `[expr, expr, ...]`, mixed types allowed, may nest: `[1, "two", false, [4,5]]`. REFERENCE TYPE: `==` is identity, not element-wise; assignment shares the same underlying array. Index with the `at(arr, i)` function — there is NO `arr[0]` subscript syntax.
-- **Object** — `obj(key: expr, ...)` with bare (unquoted) identifier keys, prototype-less. Read fields with dot notation `o.field` (errors if absent — guard with `contains`) or `get(o, "field")` for computed keys. REFERENCE TYPE like arrays. Functions can be fields and called via dot: `o.fn(x)`.
+- **Array** — `[expr, expr, ...]`, mixed types allowed, may nest: `[1, "two", false, [4,5]]`. REFERENCE TYPE: `==` is identity, not element-wise; assignment shares the same underlying array. Index with subscript syntax `arr[i]` or the equivalent `at(arr, i)` function; `i` must be a whole number (fractional/negative/out-of-bounds errors). Subscripts chain: `arr[0][1]`.
+- **Object** — `obj(key: expr, ...)` with bare (unquoted) identifier keys, prototype-less. Read fields with dot notation `o.field` (errors if absent — guard with `contains`), with string subscript `o["field"]`, or `get(o, "field")` for computed keys. REFERENCE TYPE like arrays. Functions can be fields and called via dot: `o.fn(x)`.
 - **DateTime** — no literal; produced by `datetime("...")`, `now()`, `utcNow()`. Renders ISO 8601 by default; `format(d, fmt)` for .NET format strings. Equality is by instant.
 - **Function** — lambdas and built-ins are first-class values; `typeof(lambda) == Function`.
 
@@ -120,7 +120,7 @@ Strings:
 
 Arrays:
 - `length(xs)` -> Number
-- `at(xs, index)` -> element (0-based; out-of-bounds errors). This is how you index arrays.
+- `at(xs, index)` -> element (0-based; out-of-bounds errors). Equivalent to subscript syntax `xs[index]`.
 - `first(xs)`, `last(xs)` -> element (error if empty); `rest(xs)` -> Array (all but first)
 - `any(xs)` -> Boolean (non-empty?)
 - `concat(a, b)` -> Array
@@ -160,7 +160,7 @@ Dataverse (only if host supplies a Dataverse service):
 
 ## Common pitfalls (read before writing templates)
 
-1. No `arr[0]` subscript — use `at(arr, 0)`. No `obj["k"]` — use `get(obj, "k")` or `obj.k`.
+1. Subscripts are type-specific: array subscripts need a whole-number index (`arr[0]`), object subscripts need a string key (`obj["k"]`). `arr["0"]` or `obj[0]` errors. `at(arr, i)` and `get(obj, "k")` are the function equivalents.
 2. Accessing a missing object field ERRORS. Guard with `contains(obj, "field")` first.
 3. `mut` only reassigns existing variables/fields; it cannot add a new field to an object or declare a new variable.
 4. Arrays and objects are reference types: `==` compares identity, not contents; copying a variable shares the same value (mutations are visible through both names).
