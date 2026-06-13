@@ -108,6 +108,7 @@
     <Compile Include="Ast\FunctionReferenceNode.cs" />
     <Compile Include="Ast\IfNode.cs" />
     <Compile Include="Ast\IncludeNode.cs" />
+    <Compile Include="Ast\IndexNode.cs" />
     <Compile Include="Ast\InvocationNode.cs" />
     <Compile Include="Ast\LambdaNode.cs" />
     <Compile Include="Ast\LetNode.cs" />

@@ -927,6 +927,39 @@ namespace PowwowLang.Parse
                     throw new TemplateParsingException($"Expected an expression but found {token.Type}", token.Location);
             }
 
+            // postfix look to check for invocations, field access, or indexing following the primary expr
+            while (_position < _tokens.Count)
+            {
+                // Handle any invocations that follow the primary expression
+                if (Current().Type == TokenType.LeftParen)
+                {
+                    expr = ParseInvocation(expr);
+                }
+                else if (Current().Type == TokenType.Dot)
+                {
+                    Advance(); // Skip the dot
+                    var fieldToken = Current();
+                    if (fieldToken.Type != TokenType.Field && fieldToken.Type != TokenType.Variable)
+                    {
+                        throw new TemplateParsingException($"Expected field name but got {fieldToken.Type}", fieldToken.Location);
+                    }
+                    expr = new FieldAccessNode(expr, fieldToken.Value, fieldToken.Location);
+                    Advance();
+                }
+                else if (Current().Type == TokenType.LeftBracket)
+                {
+                    Advance(); // Skip the [
+                    var index = ParseExpression();
+                    Expect(TokenType.RightBracket);
+                    Advance(); // Skip the ]
+                    expr = new IndexNode(expr, index, index.Location);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
             // Handle any invocations that follow the primary expression
             while (_position < _tokens.Count && Current().Type == TokenType.LeftParen)
             {

@@ -5120,5 +5120,119 @@ string";
             // Assert
             Assert.That(result, Is.EqualTo("nested val: foo"));
         }
+
+        [Test]
+        public void ArraysCanBeIndexed()
+        {
+            // Arrange
+            string template = @"{{ [1][0] }} {{ let x = [1, 2, 3] }}{{ x[2] }} {{ [[1, 2], [6, 7]][1][1] }}";
+
+            // Act
+            string result = _interpreter.Interpret(template, _emptyData);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(@"1 3 7"));
+        }
+
+        [Test]
+        public void ArrayIndexingIsBoundsChecked()
+        {
+            // Arrange
+            string template1 = @"{{ [1][-1] }}";
+            string template2 = @"{{ [1][1] }}";
+
+            // Act && Assert
+            var exception1 = Assert.Throws<TemplateEvaluationException>(() => {
+                _interpreter.Interpret(template1, _emptyData);
+            });
+            var exception2 = Assert.Throws<TemplateEvaluationException>(() => {
+                _interpreter.Interpret(template2, _emptyData);
+            });
+
+            StringAssert.Contains("Error at line 1, column 1: Index -1 is out of bounds for array of length 1", exception1.Message);
+            StringAssert.Contains("Error at line 1, column 1: Index 1 is out of bounds for array of length 1", exception2.Message);
+        }
+
+        [Test]
+        public void ArrayIndexingRequiresWholeNumber()
+        {
+            // Arrange
+            string template1 = @"{{ [1][1.5] }}";
+            string template2 = "{{ [1][\"x\"] }}";
+
+            // Act && Assert
+            var exception1 = Assert.Throws<TemplateEvaluationException>(() => {
+                _interpreter.Interpret(template1, _emptyData);
+            });
+            var exception2 = Assert.Throws<TemplateEvaluationException>(() => {
+                _interpreter.Interpret(template2, _emptyData);
+            });
+
+            StringAssert.Contains("Error at line 1, column 1: Expected a whole number while indexing array but found 1.5", exception1.Message);
+            StringAssert.Contains("Error at line 1, column 1: Expected a whole number while indexing array but found String", exception2.Message);
+        }
+
+        [Test]
+        public void IndexingRequiresArrayOrObject()
+        {
+            // Arrange
+            string template1 = "{{ true[1] }}";
+            string template2 = "{{ 4[\"x\"] }}";
+
+            // Act && Assert
+            var exception1 = Assert.Throws<TemplateEvaluationException>(() => {
+                _interpreter.Interpret(template1, _emptyData);
+            });
+            var exception2 = Assert.Throws<TemplateEvaluationException>(() => {
+                _interpreter.Interpret(template2, _emptyData);
+            });
+
+            StringAssert.Contains("Error at line 1, column 1: Indexing operation requires an array or an object", exception1.Message);
+            StringAssert.Contains("Error at line 1, column 1: Indexing operation requires an array or an object", exception2.Message);
+        }
+
+        [Test]
+        public void ObjectsCanBeIndexed()
+        {
+            // Arrange
+            string template = @"{{ obj(name: ""John"", age: 30)[""name""] }}";
+            string template2 = @"{{ obj(name: ""John"", age: 30, loc: obj(x: 2.4883, y: 82.9))[""loc""][""y""] }}";
+
+            // Act
+            string result = _interpreter.Interpret(template, _emptyData);
+            string result2 = _interpreter.Interpret(template2, _emptyData);
+
+            // Assert
+            Assert.That(result, Is.EqualTo("John"));
+            Assert.That(result2, Is.EqualTo("82.9"));
+        }
+
+        [Test]
+        public void ObjectIndexingRequiresString()
+        {
+            // Arrange
+            string template = @"{{ obj(name: ""John"")[0] }}";
+
+            // Act && Assert
+            var exception = Assert.Throws<TemplateEvaluationException>(() => {
+                _interpreter.Interpret(template, _emptyData);
+            });
+
+            StringAssert.Contains("Error at line 1, column 1: Expected a string while indexing object but found Number", exception.Message);
+        }
+
+        [Test]
+        public void ObjectIndexingFailsOnMissingField()
+        {
+            // Arrange
+            string template = @"{{ obj(name: ""John"")[""age""] }}";
+
+            // Act && Assert
+            var exception = Assert.Throws<TemplateEvaluationException>(() => {
+                _interpreter.Interpret(template, _emptyData);
+            });
+
+            StringAssert.Contains("Error at line 1, column 1: Object does not contain field 'age'", exception.Message);
+        }
     }
 }
