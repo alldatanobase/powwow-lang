@@ -173,6 +173,7 @@ primary ::= array
           | grouping
           | function_call
           | field_access
+          | indexer
           | string
           | number
           | boolean
@@ -234,6 +235,19 @@ identifier ::= ["_" | [A-Z] | [a-z]] {"_" | [A-Z] | [a-z]} ;
 ```
 {{ foo.bar.baz }}
 {{ let _my_var1 = 1 }}
+```
+
+## Indexing
+
+```
+indexer ::= expression[expression] ;
+```
+
+### Example
+
+```
+{{ [1, 2, 3][1] }}
+{{ obj(name: "John", age: 30)["name"] }}
 ```
 
 ## Strings
