@@ -77,8 +77,10 @@ are {{* ignored *}}
 
 ```
 assignment ::= directive_start "let" identifier "=" expression directive_end ;
-mutation ::= directive_start "mut" identifier ["." identifier] "=" expression directive_end ;
+mutation ::= directive_start ["mut"] identifier ["." identifier] "=" expression directive_end ;
 ```
+
+The leading `mut` keyword in a mutation is optional; `{{ y = 2 }}` and `{{ mut y = 2 }}` are equivalent. `mut` is deprecated and may be removed in a future version — prefer the bare form.
 
 ```
 capture ::= capture_open template capture_close ;
@@ -90,8 +92,9 @@ capture_close ::= directive_start "/capture" directive_end ;
 
 ```
 {{ let x = 1 }}
+{{ y = 2 }}
+{{ z.a = 3 }}
 {{ mut y = 2 }}
-{{ mut z.a = 3 }}
 {{ capture foo }}the capture body is evaluated {{let x = 1}}{{x}} and the result is stored into the newly declared variable foo{{ /capture}}
 ```
 

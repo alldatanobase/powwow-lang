@@ -37,12 +37,13 @@ Output: `Hello, Ada!`
 
 `{{ literal }} ... {{ /literal }}` — emits the body verbatim; directives inside are NOT interpreted. May be nested.
 
-## Variables: let / mut
+## Variables: let / assignment
 
 - `{{ let x = expr }}` declares and binds a new variable.
-- `{{ mut x = expr }}` reassigns an EXISTING variable.
-- `{{ mut obj.field = expr }}` updates an EXISTING field of an object (dot notation, one level).
-- `mut` does NOT create new variables or add new object fields — only `let` (variables) and `obj(...)` (fields) do.
+- `{{ x = expr }}` reassigns an EXISTING variable.
+- `{{ obj.field = expr }}` updates an EXISTING field of an object (dot notation, one level).
+- Assignment does NOT create new variables or add new object fields — only `let` (variables) and `obj(...)` (fields) do.
+- The `mut` keyword is OPTIONAL and DEPRECATED: `{{ mut x = expr }}` is identical to `{{ x = expr }}`. It still works (and existing templates keep running) but may be REMOVED in a future version — do not use `mut` in new templates; prefer plain assignment. The same applies inside lambda statement lists (`(() => let x = 1, x = 2, x)()`).
 
 ## Conditionals: if
 
@@ -162,7 +163,7 @@ Dataverse (only if host supplies a Dataverse service):
 
 1. Subscripts are type-specific: array subscripts need a whole-number index (`arr[0]`), object subscripts need a string key (`obj["k"]`). `arr["0"]` or `obj[0]` errors. `at(arr, i)` and `get(obj, "k")` are the function equivalents.
 2. Accessing a missing object field ERRORS. Guard with `contains(obj, "field")` first.
-3. `mut` only reassigns existing variables/fields; it cannot add a new field to an object or declare a new variable.
+3. Assignment (`x = ...`, or the optional legacy `mut x = ...`) only reassigns existing variables/fields; it cannot add a new field to an object or declare a new variable.
 4. Arrays and objects are reference types: `==` compares identity, not contents; copying a variable shares the same value (mutations are visible through both names).
 5. Strings that look like dates are still strings; convert with `datetime(...)` before using date functions.
 6. Booleans don't support `< <= > >=` (numbers only).

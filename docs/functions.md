@@ -11,7 +11,7 @@ A few things apply to every built-in:
 * **Overloading by type.** Many names (`length`, `concat`, `contains`, `order`, `round`, `string`) have several overloads. Powwow picks the overload that best matches the types of the arguments you pass. Passing a type no overload accepts is an evaluation error.
 * **Optional arguments.** Some functions take trailing optional arguments with a default value (shown as `arg = default` below). They may be omitted.
 * **Errors, not nulls.** When a built-in cannot do its job — an out-of-bounds index, a missing field, an unparseable string — it raises an evaluation error rather than returning a null or empty value. Powwow has no null type. Where a result is uncertain, guard first (for example with `contains` before `get`).
-* **Immutability.** Functions return new values; they never mutate their arguments. (The `mut` directive is the only way to change a binding — see [data types](datatypes.md).)
+* **Immutability.** Functions return new values; they never mutate their arguments. (Assignment — `x = ...`, optionally written `mut x = ...` — is the only way to change a binding — see [data types](datatypes.md).)
 
 Sections:
 

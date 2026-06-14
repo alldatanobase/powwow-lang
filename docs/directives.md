@@ -94,15 +94,15 @@ This {{ price }} is printed verbatim, and {{ this }} is not evaluated.
 
 Literal blocks may be nested; the matching `{{ /literal }}` closes the outermost block.
 
-## Variables: `let` and `mut`
+## Variables: `let` and assignment
 
-`let` declares and binds a new variable. `mut` reassigns an existing variable, or updates a field of an existing object via dot notation — it does not create new variables or add new object fields.
+`let` declares and binds a new variable. To reassign an existing variable, or update a field of an existing object via dot notation, assign to it directly with `=` — this does not create new variables or add new object fields.
 
 ```
 {{- let count = 1 -}}
 {{- let user = obj(name: "Ada", age: 36) -}}
-{{- mut count = count + 1 -}}
-{{- mut user.age = 37 -}}
+{{- count = count + 1 -}}
+{{- user.age = 37 -}}
 {{ count }}
 {{ user.name }} is {{ user.age }}
 ```
@@ -111,6 +111,10 @@ Output:
 2
 Ada is 37
 ```
+
+An assignment may optionally be prefixed with the `mut` keyword (`{{ mut count = count + 1 }}`), which behaves identically to the plain form above.
+
+> **Note:** The `mut` keyword is deprecated. It still works today and existing templates will continue to run, but it may be removed in a future version. Prefer plain assignment and avoid `mut` in new templates.
 
 See [data types](datatypes.md) for how each kind of value behaves (in particular, arrays and objects are reference types).
 
