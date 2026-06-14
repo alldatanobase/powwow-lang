@@ -122,7 +122,7 @@ string output = interpreter.Interpret(
 // <h1>My Page</h1><main>Hello World</main><footer>© 2025</footer>
 ```
 
-Included templates render with access to the same data and functions as the template that includes them, and they may include further templates. **Circular includes are detected** and raise a parsing error rather than looping forever. To resolve templates from elsewhere — a database, the file system, Dataverse — implement `ITemplateResolver` yourself; the only requirement is to return template source for a name (or throw if it is unknown).
+Included templates are block-scoped: they render with access to the data, functions, and variables in scope where they are included, but any variable they declare with `let` stays local and is not visible back in the including template — an include contributes rendered text only (see [Scoping and mutability](scoping.md#what-creates-a-new-scope)). They may include further templates. **Circular includes are detected** and raise a parsing error rather than looping forever. To resolve templates from elsewhere — a database, the file system, Dataverse — implement `ITemplateResolver` yourself; the only requirement is to return template source for a name (or throw if it is unknown).
 
 ## Dataverse integration
 

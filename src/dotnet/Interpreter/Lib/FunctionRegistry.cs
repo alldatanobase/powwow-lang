@@ -1188,7 +1188,7 @@ namespace PowwowLang.Lib
                 (context, callSite, args) =>
                 {
                     var number = (args[0].ValueOf() as NumberValue).Value();
-                    return new Value(new NumberValue(Math.Round(number, 0)));
+                    return new Value(new NumberValue(Math.Round(number, 0, MidpointRounding.AwayFromZero)));
                 });
 
             Register("round",

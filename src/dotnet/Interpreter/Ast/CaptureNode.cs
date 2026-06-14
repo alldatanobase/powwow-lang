@@ -22,7 +22,13 @@ namespace PowwowLang.Ast
 
         public override Value Evaluate(ExecutionContext context)
         {
-            var result = _body.Evaluate(context);
+            var currentContext = new ExecutionContext(
+                context.GetData(),
+                context.GetFunctionRegistry(),
+                context,
+                context.MaxDepth,
+                this);
+            var result = _body.Evaluate(currentContext);
             try
             {
                 context.DefineVariable(_variableName, result);
