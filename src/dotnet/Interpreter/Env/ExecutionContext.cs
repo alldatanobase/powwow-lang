@@ -54,11 +54,14 @@ namespace PowwowLang.Env
 
         public virtual void DefineVariable(string name, Value value)
         {
-            // Check if already defined as a variable, an iterator variable, or defined in the data context
-            if (_variables.ContainsKey(name) || _iteratorValues.ContainsKey(name) || TryResolveValue(name, out _))
+            // Check if already defined as a variable, an iterator variable, function registry function, or defined in the data context
+            if (_variables.ContainsKey(name) ||
+                _iteratorValues.ContainsKey(name) ||
+                _functionRegistry.HasFunction(name) ||
+                TryResolveValue(name, out _))
             {
                 throw new InnerEvaluationException(
-                    $"Cannot define variable '{name}' because it conflicts with an existing variable or field");
+                    $"Cannot define variable '{name}' because it conflicts with an existing variable, field, or function");
             }
 
             // If we get here, the name is safe to use
@@ -67,6 +70,13 @@ namespace PowwowLang.Env
 
         public virtual void RedefineVariable(string name, Value value)
         {
+            var firstPart = name.Split('.')[0];
+            if (_functionRegistry.HasFunction(firstPart))
+            {
+                throw new InnerEvaluationException(
+                    $"Cannot mutate variable '{name}' because it is an existing function");
+            }
+
             bool result = TryResolveMutableValue(name, out Value variable);
             if (!result)
             {

@@ -354,11 +354,11 @@ Ada
 36
 ```
 
-The fields of an existing object can be updated with `mut`, using dot notation on the left-hand side. Note that `mut` reassigns or updates an existing binding. It does not add new fields to an object.
+The fields of an existing object can be updated by assigning to them with dot notation on the left-hand side. This reassigns an existing field; it does not add new fields to an object. (The assignment may optionally be prefixed with the `mut` keyword — `mut user.age = 37` — which behaves identically; see [Variables](directives.md#variables-let-and-assignment).)
 
 ```
 {{- let user = obj(name: "Ada", age: 36) -}}
-{{- mut user.age = 37 -}}
+{{- user.age = 37 -}}
 {{user.age}}
 ```
 ```
@@ -397,7 +397,7 @@ Like arrays, objects are reference types. Assigning an object to a new variable 
 ```
 {{- let x = obj(a: 1, b: 2) -}}
 {{- let y = x -}}
-{{- mut y.a = 3 -}}
+{{- y.a = 3 -}}
 {{ y.a }} {{ x.a }}
 ```
 ```
@@ -464,7 +464,7 @@ Output:
 50
 ```
 
-A lambda body may declare local `let` or `mut` statements before its result expression, each followed by a comma.
+A lambda body may declare local variables with `let`, and reassign them, before its result expression, each statement followed by a comma. As elsewhere, a reassignment is a plain `name = expr` (the `mut` keyword is optional).
 
 ```
 {{- let hypotenuseSquared = (a, b) => let a2 = a * a, let b2 = b * b, a2 + b2 -}}

@@ -53,22 +53,12 @@ namespace PowwowLang.Ast
             {
                 if (statement.Value.Item2 == StatementType.Declaration)
                 {
-                    if (parameters.Contains(statement.Key))
+                    if (parameters.Contains(statement.Key) || 
+                        functionRegistry.HasFunction(statement.Key) ||
+                        !seenVariables.Add(statement.Key))
                     {
                         throw new TemplateParsingException(
-                            $"Cannot define variable '{statement.Key}' because it conflicts with an existing variable or field",
-                            location);
-                    }
-                    if (functionRegistry.HasFunction(statement.Key))
-                    {
-                        throw new TemplateParsingException(
-                            $"Cannot define variable '{statement.Key}' because it conflicts with an existing function",
-                            location);
-                    }
-                    if (!seenVariables.Add(statement.Key))
-                    {
-                        throw new TemplateParsingException(
-                            $"Cannot define variable '{statement.Key}' because it conflicts with an existing variable or field",
+                            $"Cannot define variable '{statement.Key}' because it conflicts with an existing variable, field, or function",
                             location);
                     }
                 }

@@ -15,7 +15,7 @@ Hi Ada, thanks for being premium!
 
 ## Features
 
-* Variables (`let`) and mutation (`mut`)
+* Variables (`let`) and assignment (`x = ...`)
 * Conditionals (`if` / `elseif` / `else`) and loops (`for`)
 * Numbers, strings, booleans, arrays, prototype-less objects, and dates
 * Lambdas, first-class functions, closures, and recursion

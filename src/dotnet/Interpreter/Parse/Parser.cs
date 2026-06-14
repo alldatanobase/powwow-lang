@@ -84,6 +84,10 @@ namespace PowwowLang.Parse
                         {
                             nodes.Add(ParseMutationStatement());
                         }
+                        else if (nextToken.Type == TokenType.Variable && IsMutationAhead(_position + 1))
+                        {
+                            nodes.Add(ParseImplicitMutation());
+                        }
                         else if (nextToken.Type == TokenType.Capture)
                         {
                             nodes.Add(ParseCaptureStatement());
@@ -180,10 +184,24 @@ namespace PowwowLang.Parse
 
         private AstNode ParseMutationStatement()
         {
+            // Leaving support in for the mut keyword for backwards compatibility
             Advance(); // Skip {{
             var token = Current();
             Advance(); // Skip mut
 
+            return ParseMutationBase(token);
+        }
+
+        private AstNode ParseImplicitMutation()
+        {
+            Advance(); // Skip {{
+            var token = Current();
+
+            return ParseMutationBase(token);
+        }
+
+        private AstNode ParseMutationBase(Token token)
+        {
             var variableName = Expect(TokenType.Variable).Value;
             Advance();
 
@@ -412,7 +430,7 @@ namespace PowwowLang.Parse
             // Parse statement list
             while (true)
             {
-                if (Current().Type != TokenType.Let && Current().Type != TokenType.Mutation)
+                if (Current().Type != TokenType.Let && Current().Type != TokenType.Mutation && !IsMutationAhead(_position))
                 {
                     // If next expression is not a variable declaration or mutation then must be return statement
                     var finalExpression = ParseExpression();
@@ -420,7 +438,10 @@ namespace PowwowLang.Parse
                 }
 
                 var statementType = Current().Type == TokenType.Let ? LambdaNode.StatementType.Declaration : LambdaNode.StatementType.Mutation;
-                Advance(); // skip let or mut
+                if (Current().Type == TokenType.Let || Current().Type == TokenType.Mutation)
+                {
+                    Advance(); // skip let or mut if it's not an implicit mutation
+                }
 
                 string variableName = null;
                 try
@@ -432,7 +453,7 @@ namespace PowwowLang.Parse
                 catch (TemplateParsingException ex)
                 {
                     throw new TemplateParsingException(
-                        $"Expected variable name after 'let' or 'mut' in lambda: {ex.Descriptor}",
+                        $"Expected variable name in lambda: {ex.Descriptor}",
                         Current().Location
                     );
                 }
@@ -1020,6 +1041,29 @@ namespace PowwowLang.Parse
                     throw new TemplateParsingException($"Unable to parse unknown type {token.Value}", token.Location);
             }
             return new TypeNode(type, token.Location);
+        }
+
+        private bool IsMutationAhead(int pos)
+        {
+            if (pos >= _tokens.Count || _tokens[pos].Type != TokenType.Variable)
+            {
+                return false;
+            }
+
+            pos++; // Skip Variable
+
+            while (pos < _tokens.Count && _tokens[pos].Type == TokenType.Dot)
+            {
+                pos++; // Skip Dot
+                if (pos >= _tokens.Count || 
+                    (_tokens[pos].Type != TokenType.Field && _tokens[pos].Type != TokenType.Variable))
+                {
+                    return false;
+                }
+                pos++; // Skip Field
+            }
+
+            return pos < _tokens.Count && _tokens[pos].Type == TokenType.Assignment;
         }
 
         private bool IsLambdaAhead()

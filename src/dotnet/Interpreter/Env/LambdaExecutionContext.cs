@@ -50,10 +50,10 @@ namespace PowwowLang.Env
         public override void DefineVariable(string name, Value value)
         {
             // Check if already defined as a variable
-            if (_variables.ContainsKey(name))
+            if (_variables.ContainsKey(name) || _parentContext.GetFunctionRegistry().HasFunction(name))
             {
                 throw new InnerEvaluationException(
-                    $"Cannot define variable '{name}' because it conflicts with an existing variable or field");
+                    $"Cannot define variable '{name}' because it conflicts with an existing variable, field, or function");
             }
 
             // Check if defined as a parameter
@@ -66,7 +66,7 @@ namespace PowwowLang.Env
             if (_parentContext.TryResolveNonShadowableValue(name, out _))
             {
                 throw new InnerEvaluationException(
-                    $"Cannot define variable '{name}' because it conflicts with an existing variable or field");
+                    $"Cannot define variable '{name}' because it conflicts with an existing variable, field, or function");
             }
 
             _variables[name] = value;
