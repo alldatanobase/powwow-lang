@@ -5330,5 +5330,102 @@ string";
 
             StringAssert.Contains("Error at line 1, column 36: Cannot mutate variable 'length' because it is an existing function", exception.Message);
         }
+
+        [Test]
+        public void CaptureIsBlockScoped()
+        {
+            // Arrange
+            string template = @"{{ let x =  1 }}{{ capture y }}{{ let z = 2 }}{{ z }}{{ /capture }}{{ z }}";
+
+            // Act && Assert
+            var exception = Assert.Throws<TemplateEvaluationException>(() =>
+            {
+                _interpreter.Interpret(template, _emptyData);
+            });
+
+            // Assert
+            StringAssert.Contains("Error at line 1, column 1: Unknown identifier: z", exception.Message);
+        }
+
+        [Test]
+        public void CaptureDoesntAllowShadowing()
+        {
+            // Arrange
+            string template = @"{{ let x =  1 }}{{ capture y }}{{ let x = 2 }}{{ /capture }}{{ x }}";
+
+            // Act && Assert
+            var exception = Assert.Throws<TemplateEvaluationException>(() =>
+            {
+                _interpreter.Interpret(template, _emptyData);
+            });
+
+            // Assert
+            StringAssert.Contains("Error at line 1, column 20: Cannot define variable 'x' because it conflicts with an existing variable, field, or function", exception.Message);
+        }
+
+        [Test]
+        public void IfIsBlockScoped()
+        {
+
+            // Arrange
+            string template = @"{{ let x = 1 }}{{ if x == 1 }}{{ let z = 2 }}{{ /if }}{{ z }}";
+            string template2 = @"{{ let x = 1 }}{{ if x == 2 }}{{ let z = 2 }}{{ elseif x == 1 }}{{ let z = 1 }}{{ /if }}{{ z }}";
+            string template3 = @"{{ let x = 1 }}{{ if x == 2 }}{{ let z = 2 }}{{ else }}{{ let z = 1 }}{{ /if }}{{ z }}";
+
+            // Act && Assert
+            var exception = Assert.Throws<TemplateEvaluationException>(() => { _interpreter.Interpret(template, _emptyData); });
+            var exception2 = Assert.Throws<TemplateEvaluationException>(() => { _interpreter.Interpret(template2, _emptyData); });
+            var exception3 = Assert.Throws<TemplateEvaluationException>(() => { _interpreter.Interpret(template3, _emptyData); });
+
+            // Assert
+            StringAssert.Contains("Error at line 1, column 1: Unknown identifier: z", exception.Message);
+            StringAssert.Contains("Error at line 1, column 1: Unknown identifier: z", exception2.Message);
+            StringAssert.Contains("Error at line 1, column 1: Unknown identifier: z", exception3.Message);
+        }
+
+        [Test]
+        public void IfDoesntAllowShadowing()
+        {
+            // Arrange
+            string template = @"{{ let x = 1 }}{{ if x == 1 }}{{ let x = 2 }}{{ /if }}";
+            string template2 = @"{{ let x = 1 }}{{ if x == 2 }}{{ let x = 2 }}{{ elseif x == 1 }}{{ let x = 3 }}{{ /if }}";
+            string template3 = @"{{ let x = 1 }}{{ if x == 2 }}{{ let z = 2 }}{{ else }}{{ let x = 3 }}{{ /if }}";
+
+            // Act && Assert
+            var exception = Assert.Throws<TemplateEvaluationException>(() => { _interpreter.Interpret(template, _emptyData); });
+            var exception2 = Assert.Throws<TemplateEvaluationException>(() => { _interpreter.Interpret(template2, _emptyData); });
+            var exception3 = Assert.Throws<TemplateEvaluationException>(() => { _interpreter.Interpret(template3, _emptyData); });
+
+            // Assert
+            StringAssert.Contains("Error at line 1, column 19: Cannot define variable 'x' because it conflicts with an existing variable, field, or function", exception.Message);
+            StringAssert.Contains("Error at line 1, column 19: Cannot define variable 'x' because it conflicts with an existing variable, field, or function", exception2.Message);
+            StringAssert.Contains("Error at line 1, column 19: Cannot define variable 'x' because it conflicts with an existing variable, field, or function", exception3.Message);
+        }
+
+        [Test]
+        public void IfAllowsReassignmentOfOuterScopedLets()
+        {
+            // Arrange
+            string template = @"{{ let x = 1 }}{{ if x == 1 }}{{ x = 2 }}{{ /if }}{{ x }}";
+
+            // Act
+            string result = _interpreter.Interpret(template, _emptyData);
+
+            // Assert
+            Assert.That(result, Is.EqualTo("2"));
+        }
+
+        [Test]
+        public void IteratorVariableCannotShadowFunctionNames()
+        {
+            // Arrange
+            string template = @"{{ for length in [1, 2] }}{{ length }}{{ /for }}";
+
+            // Act
+            var exception = Assert.Throws<TemplateEvaluationException>(() => { _interpreter.Interpret(template, _emptyData); });
+
+            // Assert
+            StringAssert.Contains("Error at line 1, column 1: Iterator name 'length' conflicts with an existing variable, field, or function", exception.Message);
+        }
     }
 }

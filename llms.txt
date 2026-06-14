@@ -50,7 +50,7 @@ Output: `Hello, Ada!`
 ```
 {{ if cond }} ... {{ elseif cond2 }} ... {{ else }} ... {{ /if }}
 ```
-The condition must be a boolean expression. `elseif`/`else` are optional. There is also a functional inline form: the `if(cond, then, else)` built-in (returns a value; both branches lazy).
+The condition must be a boolean expression. `elseif`/`else` are optional. There is also a functional inline form: the `if(cond, then, else)` built-in (returns a value; both branches lazy). Each branch is BLOCK-SCOPED: a `let` inside a branch does not leak out (see Scoping).
 
 ## Loops: for
 
@@ -64,11 +64,23 @@ Iterates an array, binding each element to the loop variable. Pairs with `range(
 ```
 {{ capture name }} ...body... {{ /capture }}
 ```
-Evaluates the body, stores the RENDERED STRING into a new variable `name`, and emits nothing at the site. Body may contain any directives (loops, if, include).
+Evaluates the body, stores the RENDERED STRING into a new variable `name`, and emits nothing at the site. Body may contain any directives (loops, if, include). The body is BLOCK-SCOPED: only `name` is published to the surrounding scope; `let`s used inside the body are local to it (see Scoping).
 
 ## Composition: include
 
-`{{ include templateName }}` renders another template inline by bare name. Requires the host to supply an `ITemplateResolver`; otherwise unavailable. Included templates share the host's data and functions. Circular includes are detected and error.
+`{{ include templateName }}` renders another template inline by bare name. Requires the host to supply an `ITemplateResolver`; otherwise unavailable. Included templates are BLOCK-SCOPED: they run in their own scope and can read the names in scope at the include site plus host data and functions, but their top-level `let`s do NOT leak back to the caller — an include publishes nothing back, only rendered text (see Scoping). Circular includes are detected and error.
+
+## Scoping
+
+Lexical scoping. A NEW scope is created by: a lambda call, each `for` iteration, each `if`/`elseif`/`else` branch, each `capture` body, and each `include` (the included template runs in its own scope). The root template body is the global scope (host data + registered functions).
+
+- A `let` inside a scope is LOCAL and discarded when the block ends — it does NOT leak out. So a `let` declared in an `if`/`capture`/`for` body is invisible afterward (`Unknown identifier`).
+- NO SHADOWING: an inner `let` may not reuse a name visible in an enclosing scope (it errors, it does not shadow). Exception: lambda parameters may reuse an outer name and take precedence inside the lambda.
+- Reassigning an OUTER variable from inside a scope (`x = ...`) reaches the outer binding and persists after the block.
+- A `capture` publishes only its variable to the enclosing scope; an `include` publishes nothing back (it emits rendered text only).
+- Resolution order: current scope -> enclosing scopes (for a lambda: its definition/closure scope, then the caller) -> global data -> registered functions. Unresolved name errors.
+- IMMUTABLE (reassignment errors): loop variables, lambda parameters, host/global data, registered functions. MUTABLE: `let` variables and the fields of objects they hold.
+- No "declare without value". To set a variable conditionally: declare it with a default first, then reassign inside the branch — `{{ let x = "Free" }}{{ if cond }}{{ x = "Premium" }}{{ /if }}` — or use the expression form `{{ let x = if(cond, "Premium", "Free") }}`, or `capture`.
 
 ## Data types
 
@@ -171,6 +183,7 @@ Dataverse (only if host supplies a Dataverse service):
 8. Decimal scale shows through: division and decimal literals can render trailing decimals (e.g. `4.0`). Use `round(x, n)` to control display.
 9. Whitespace around no-output directives (`let`, `for`, `if`) stays in the output unless you use `{{-`/`-}}`.
 10. `range`/`rangeX` ends are EXCLUSIVE.
+11. `if`/`elseif`/`else` branches, `capture` bodies, and included templates are BLOCK-SCOPED: a `let` inside does not survive the block (for an include, does not leak back to the caller), and cannot shadow an outer name. To compute a value conditionally, declare it with a default before the block and reassign inside (`{{ let x = "Free" }}{{ if c }}{{ x = "Premium" }}{{ /if }}`), or use `{{ let x = if(c, a, b) }}`. Reassigning an outer variable from inside a block does persist.
 
 ## Worked examples
 

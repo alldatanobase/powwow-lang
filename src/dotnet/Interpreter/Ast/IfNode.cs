@@ -40,13 +40,25 @@ namespace PowwowLang.Ast
                 var evaluated = branch.Condition.Evaluate(context);
                 if (TypeHelper.UnboxBoolean(evaluated, context, this))
                 {
-                    return branch.Body.Evaluate(context);
+                    var currentContext = new ExecutionContext(
+                        context.GetData(),
+                        context.GetFunctionRegistry(),
+                        context,
+                        context.MaxDepth,
+                        this);
+                    return branch.Body.Evaluate(currentContext);
                 }
             }
 
             if (_elseBranch != null)
             {
-                return _elseBranch.Evaluate(context);
+                var currentContext = new ExecutionContext(
+                    context.GetData(),
+                    context.GetFunctionRegistry(),
+                    context,
+                    context.MaxDepth,
+                    this);
+                return _elseBranch.Evaluate(currentContext);
             }
 
             return new Value(new StringValue(string.Empty));

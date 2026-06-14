@@ -139,6 +139,8 @@ Output:
 C
 ```
 
+Each branch is **block-scoped**: a variable declared with `let` inside a branch is local to that branch and is not visible after the `if`. Reassigning a variable that was declared outside the `if` does persist, however. Because Powwow has no "declare without value" form, the way to set a value conditionally for later use is to declare it with a default before the `if` and reassign it inside a branch — see [Setting a variable conditionally](scoping.md#setting-a-variable-conditionally).
+
 For an inline conditional *expression* (rather than a block), see the [`if(...)` function](functions.md#control-flow-functions).
 
 ## Loops: `for`
@@ -179,6 +181,8 @@ Hello, Ada!
 
 The captured value is the rendered text of the body, so a capture can contain any directives — including loops, conditionals, and `include` — and the variable it produces is an ordinary string.
 
+The body is **block-scoped**: only the capture variable is published to the surrounding scope. Any `let` used inside the body to help build the string is local to it and is not visible afterward. See [Scoping and mutability](scoping.md#what-creates-a-new-scope).
+
 ## Composition: `include`
 
 `include` renders another template inline by name, which lets you factor shared pieces (headers, footers, partials) into their own templates and compose them.
@@ -189,4 +193,6 @@ The captured value is the rendered text of the body, so a capture can contain an
 {{ include footer }}
 ```
 
-Includes are resolved by the host through an `ITemplateResolver` that maps a name (`header`, `footer`, …) to template source. If the interpreter was created without a resolver, `include` is unavailable. The included template is rendered with access to the same data and functions as its host, and **circular includes are detected and reported** as an error rather than looping forever. See [Embedding Powwow in a .NET host](embedding.md#template-composition) for wiring up a resolver.
+Includes are resolved by the host through an `ITemplateResolver` that maps a name (`header`, `footer`, …) to template source. If the interpreter was created without a resolver, `include` is unavailable. **Circular includes are detected and reported** as an error rather than looping forever. See [Embedding Powwow in a .NET host](embedding.md#template-composition) for wiring up a resolver.
+
+The included template is **block-scoped**: it runs in its own scope, so any variable it declares with `let` at the top level is local to it and is not visible to the including template — an `include` publishes nothing back to its caller and contributes only rendered text. It can still read names that are in scope at the include site, as well as host data and registered functions. See [Scoping and mutability](scoping.md#what-creates-a-new-scope).

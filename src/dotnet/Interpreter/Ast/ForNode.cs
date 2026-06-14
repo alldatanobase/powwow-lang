@@ -28,10 +28,10 @@ namespace PowwowLang.Ast
         public override Value Evaluate(ExecutionContext context)
         {
             // Check if iterator name conflicts with existing variable
-            if (context.TryResolveValue(_iteratorName, out _))
+            if (context.GetFunctionRegistry().HasFunction(_iteratorName) || context.TryResolveValue(_iteratorName, out _))
             {
                 throw new TemplateEvaluationException(
-                    $"Iterator name '{_iteratorName}' conflicts with an existing variable or field",
+                    $"Iterator name '{_iteratorName}' conflicts with an existing variable, field, or function",
                     context,
                     this);
             }
