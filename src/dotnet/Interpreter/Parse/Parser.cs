@@ -981,31 +981,6 @@ namespace PowwowLang.Parse
                 }
             }
 
-            // Handle any invocations that follow the primary expression
-            while (_position < _tokens.Count && Current().Type == TokenType.LeftParen)
-            {
-                expr = ParseInvocation(expr);
-            }
-
-            // Handle any fields accessed after a dot
-            while (_position < _tokens.Count && Current().Type == TokenType.Dot)
-            {
-                Advance(); // Skip the dot
-                var fieldToken = Current();
-                if (fieldToken.Type != TokenType.Field && fieldToken.Type != TokenType.Variable)
-                {
-                    throw new TemplateParsingException($"Expected field name but got {fieldToken.Type}", fieldToken.Location);
-                }
-                expr = new FieldAccessNode(expr, fieldToken.Value, fieldToken.Location);
-                Advance();
-
-                // Handle any invocations that follow nested object invocation
-                while (_position < _tokens.Count && Current().Type == TokenType.LeftParen)
-                {
-                    expr = ParseInvocation(expr);
-                }
-            }
-
             return expr;
         }
 
