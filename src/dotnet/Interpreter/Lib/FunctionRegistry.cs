@@ -1209,7 +1209,7 @@ namespace PowwowLang.Lib
                             callSite);
                     }
 
-                    return new Value(new NumberValue(Math.Round(number, decimals)));
+                    return new Value(new NumberValue(Math.Round(number, decimals, MidpointRounding.AwayFromZero)));
                 });
 
             Register("string",
