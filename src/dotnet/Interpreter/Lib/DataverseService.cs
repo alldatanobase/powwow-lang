@@ -60,7 +60,7 @@ namespace PowwowLang.Lib
                     return new Value(new ObjectValue(new Dictionary<string, Value>()
                     {
                         { "id", new Value(new StringValue(entityRef.Id.ToString())) },
-                        { "name", new Value(new StringValue(entityRef.Name)) },
+                        { "name", new Value(new StringValue(entityRef.Name ?? "")) },
                         { "logicalName", new Value(new StringValue(entityRef.LogicalName)) }
                     }));
 
